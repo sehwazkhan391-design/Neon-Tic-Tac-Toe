@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#100821">
+<title>Neon Tic Tac Toe</title>
+<style>
+:root{--bg:#100821;--cyan:#25f4ff;--blue:#168bff;--red:#ff354f;--text:#eefaff;--muted:#9ab4dc}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text)}
+body{min-height:100dvh;display:flex;justify-content:center;align-items:center;padding:14px;background:radial-gradient(ellipse at 50% 30%,#28105a 0,#130b2e 48%,#080512 100%);overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;background-image:linear-gradient(#2a5d8c33 1px,transparent 1px),linear-gradient(90deg,#2a5d8c33 1px,transparent 1px);background-size:42px 42px;transform:perspective(420px) rotateX(58deg) scale(1.7);transform-origin:bottom;top:45%}
+.app{width:min(100%,430px);position:relative;z-index:1}
+.panel{border:1px solid #3b9df766;border-radius:26px;background:linear-gradient(160deg,#1b1646ed,#100a2aef 72%);box-shadow:0 0 35px #126bff35,inset 0 0 30px #4c2a9b25;padding:22px 18px}
+.hidden{display:none!important}
+h1{font-size:clamp(2rem,8vw,2.8rem);line-height:1.05;margin:0 0 10px;text-align:center;letter-spacing:1px;text-shadow:0 0 18px #20bfff}
+.subtitle{text-align:center;color:var(--muted);margin:0 0 26px;font-size:.95rem}
+.logo{display:flex;justify-content:center;align-items:center;gap:18px;margin:22px 0 18px}
+.logo span{font-size:4.3rem;font-weight:800;line-height:1}
+.o{color:#69c9ff;text-shadow:0 0 9px #168bff,0 0 25px #168bff}
+.x{color:#ff6576;text-shadow:0 0 9px #ff354f,0 0 25px #ff354f}
+.vs{font-weight:800;color:white;font-size:1.15rem}
+.btn{width:100%;border:1px solid #37edff;border-radius:15px;padding:14px 16px;background:linear-gradient(135deg,#087cae,#2830a3);color:white;font-size:1.08rem;font-weight:750;letter-spacing:.5px;box-shadow:0 0 17px #16dfff55;cursor:pointer;touch-action:manipulation}
+.btn:active,.iconbtn:active,.cell:active{transform:scale(.97)}
+.btn.secondary{background:#191a43;border-color:#5673c9;box-shadow:none}
+.btnrow{display:flex;gap:12px;margin-top:14px}
+.btnrow .btn{flex:1}
+.field{margin:18px 0}
+.field label{display:block;color:#b9d7ff;margin-bottom:8px;font-size:.9rem}
+select{width:100%;padding:12px;border-radius:12px;background:#100e31;color:white;border:1px solid #536ebc;font-size:1rem}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}
+.iconbtn{width:48px;height:48px;border-radius:50%;border:2px solid var(--cyan);background:#11133a;color:white;font-size:1.55rem;box-shadow:0 0 14px #21eaff66;cursor:pointer}
+.iconbtn.back{border-color:var(--red);box-shadow:0 0 14px #ff354f66}
+.scorehead{display:flex;align-items:center;justify-content:space-around;margin:6px 0 14px;text-align:center}
+.player{min-width:90px}
+.symbol{font-size:3.6rem;font-weight:800;line-height:1;text-shadow:0 0 17px currentColor}
+.player small{display:block;color:#b6caff;font-size:.92rem;margin-top:5px}
+.score{font-size:1.3rem;font-weight:800;color:white;margin-top:5px}
+.status{text-align:center;color:#d7f8ff;min-height:28px;font-weight:650;margin:14px 0 12px}
+.turnline{height:5px;width:145px;margin:0 auto 16px;border-radius:5px;background:linear-gradient(90deg,var(--cyan),#fff,var(--cyan));box-shadow:0 0 12px var(--cyan)}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:6px;border:3px solid var(--cyan);border-radius:20px;background:#0c1435;box-shadow:0 0 18px #22edff9c,inset 0 0 22px #15cfff24;position:relative;overflow:hidden}
+.cell{aspect-ratio:1/1;min-width:0;border:0;background:linear-gradient(145deg,#20164d,#160e36);display:grid;place-items:center;color:white;font-size:clamp(3.5rem,17vw,5.5rem);font-weight:650;cursor:pointer;touch-action:manipulation;text-shadow:0 0 10px currentColor,0 0 24px currentColor}
+.cell:not(:nth-child(3n)){border-right:1px solid #20c8e988}
+.cell:nth-child(-n+6){border-bottom:1px solid #20c8e988}
+.cell.o{color:#8edcff}.cell.x{color:#ff6a79}
+.cell:disabled{cursor:default}
+.cell.win{background:#16445a;animation:pulse .8s infinite alternate}
+@keyframes pulse{to{box-shadow:inset 0 0 25px #29f4ff99}}
+.actions{display:flex;justify-content:center;gap:18px;margin:20px 0 2px}
+.action{width:76px;height:76px;border:2px solid #32dfff;border-radius:18px;background:#101943;color:#60edff;font-size:2.3rem;box-shadow:0 0 16px #21dfff55;cursor:pointer}
+.note{text-align:center;color:#91a9d4;font-size:.78rem;margin-top:16px}
+.modalshade{position:fixed;inset:0;background:#03020bc9;display:grid;place-items:center;padding:20px;z-index:5}
+.modal{width:min(100%,350px);padding:22px;border:1px solid var(--cyan);border-radius:20px;background:#171039;box-shadow:0 0 30px #20dfff66;text-align:center}
+.modal h2{margin:0 0 10px}.modal p{color:#c0d7f6}
+@media(max-height:700px){body{align-items:flex-start}.panel{padding:16px}.scorehead .symbol{font-size:2.8rem}.cell{font-size:clamp(3rem,14vw,4.3rem)}.actions{margin-top:12px}.action{width:60px;height:60px}}
+</style>
+</head>
+<body>
+<main class="app">
+<section id="home" class="panel">
+  <h1>NEON TIC TAC TOE</h1>
+  <p class="subtitle">Challenge the AI in a glowing battle</p>
+  <div class="logo"><span class="o">O</span><span class="vs">VS</span><span class="x">X</span></div>
+  <div class="field"><label for="difficulty">AI Difficulty</label><select id="difficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select></div>
+  <div class="field"><label for="starter">Who plays first?</label><select id="starter"><option value="player">Player (O)</option><option value="ai">AI (X)</option></select></div>
+  <button class="btn" id="startBtn">▶ START GAME</button>
+  <p class="note">You are O · AI is X · Get three in a row to win</p>
+</section>
+
+<section id="game" class="panel hidden">
+  <div class="topbar">
+    <button class="iconbtn back" id="homeBtn" aria-label="Home">←</button>
+    <strong>NEON TIC TAC TOE</strong>
+    <button class="iconbtn" id="settingsBtn" aria-label="Settings">⚙</button>
+  </div>
+  <div class="scorehead">
+    <div class="player"><div class="symbol o">O</div><small>Player</small><div class="score" id="playerScore">0</div></div>
+    <div class="vs">VS</div>
+    <div class="player"><div class="symbol x">X</div><small>AI</small><div class="score" id="aiScore">0</div></div>
+  </div>
+  <div class="turnline"></div>
+  <div class="status" id="status" aria-live="polite">Your turn — choose a square</div>
+  <div class="board" id="board" role="group" aria-label="Tic tac toe board">
+    <button class="cell" data-i="0" aria-label="Top left"></button><button class="cell" data-i="1" aria-label="Top middle"></button><button class="cell" data-i="2" aria-label="Top right"></button>
+    <button class="cell" data-i="3" aria-label="Middle left"></button><button class="cell" data-i="4" aria-label="Center"></button><button class="cell" data-i="5" aria-label="Middle right"></button>
+    <button class="cell" data-i="6" aria-label="Bottom left"></button><button class="cell" data-i="7" aria-label="Bottom middle"></button><button class="cell" data-i="8" aria-label="Bottom right"></button>
+  </div>
+  <div class="actions">
+    <button class="action" id="undoBtn" title="Undo last turn" aria-label="Undo">↶</button>
+    <button class="action" id="hintBtn" title="Hint" aria-label="Hint">💡</button>
+    <button class="action" id="restartBtn" title="Restart" aria-label="Restart">⟳</button>
+  </div>
+  <p class="note">↶ Undo · 💡 Hint · ⟳ New round</p>
+</section>
+</main>
+<div class="modalshade hidden" id="modal">
+  <div class="modal"><h2 id="modalTitle">Game over</h2><p id="modalText"></p><button class="btn" id="nextBtn">PLAY AGAIN</button><div style="height:10px"></div><button class="btn secondary" id="modalHome">HOME</button></div>
+</div>
+<script>
+(() => {
+ const $=id=>document.getElementById(id), home=$('home'),game=$('game'),cells=[...document.querySelectorAll('.cell')];
+ const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+ let board=Array(9).fill(''),turn='O',active=false,finished=false,history=[],scores={O:0,X:0},difficulty='medium',hintIndex=-1;
+ function showHome(){ $('modal').classList.add('hidden');game.classList.add('hidden');home.classList.remove('hidden');active=false; }
+ function start(){difficulty=$('difficulty').value;home.classList.add('hidden');game.classList.remove('hidden');scores={O:0,X:0};updateScores();newRound($('starter').value==='player'?'O':'X');}
+ function newRound(first='O'){board=Array(9).fill('');history=[];turn=first;active=true;finished=false;hintIndex=-1;draw();setStatus(turn==='O'?'Your turn — choose a square':'AI is thinking…');if(turn==='X')setTimeout(aiMove,450);}
+ function draw(){cells.forEach((c,i)=>{c.textContent=board[i];c.className='cell'+(board[i]?` ${board[i].toLowerCase()}`:'')+(i===hintIndex?' win':'');c.disabled=!!board[i]||finished||!active;});}
+ function setStatus(t){$('status').textContent=t;}
+ function updateScores(){$('playerScore').textContent=scores.O;$('aiScore').textContent=scores.X;}
+ function winner(b=board){for(const line of wins){const [a,c,d]=line;if(b[a]&&b[a]===b[c]&&b[a]===b[d])return {mark:b[a],line};}return null;}
+ function finish(result){finished=true;active=false;draw();if(result==='draw'){$('modalTitle').textContent='IT’S A DRAW!';$('modalText').textContent='A close match. Try another round!';setStatus('Draw game');}else{scores[result]++;updateScores();$('modalTitle').textContent=result==='O'?'YOU WIN! 🎉':'AI WINS!';$('modalText').textContent=result==='O'?'Amazing! You beat the AI.':'Good try! You can win the next round.';setStatus(result==='O'?'You won the round!':'AI won the round!');const w=winner();if(w)w.line.forEach(i=>cells[i].classList.add('win'));}$('modal').classList.remove('hidden');}
+ function play(i,mark){if(board[i]||finished)return;history.push({board:board.slice(),turn});board[i]=mark;hintIndex=-1;draw();const w=winner();if(w){finish(w.mark);return;}if(board.every(Boolean)){finish('draw');return;}turn=mark==='O'?'X':'O';if(turn==='X'){setStatus('AI is thinking…');draw();setTimeout(aiMove,400);}else{setStatus('Your turn — choose a square');draw();}}
+ function evaluate(b){const w=winner(b);if(w)return w.mark==='X'?10:-10;return 0;}
+ function minimax(b,isMax,depth=0){let score=evaluate(b);if(score===10)return score-depth;if(score===-10)return score+depth;if(b.every(Boolean))return 0;let best=isMax?-Infinity:Infinity;for(let i=0;i<9;i++)if(!b[i]){b[i]=isMax?'X':'O';let val=minimax(b,!isMax,depth+1);b[i]='';best=isMax?Math.max(best,val):Math.min(best,val);}return best;}
+ function bestMove(){let choices=[];for(let i=0;i<9;i++)if(!board[i]){board[i]='X';let score=minimax(board,false);board[i]='';choices.push({i,score});}choices.sort((a,b)=>b.score-a.score);if(difficulty==='easy')return choices[Math.floor(Math.random()*choices.length)].i;if(difficulty==='medium'&&Math.random()<.42)return choices[Math.floor(Math.random()*choices.length)].i;return choices[0]?.i;}
+ function aiMove(){if(!active||finished||turn!=='X')return;let i;if(difficulty==='easy'){let empty=board.map((v,j)=>v?null:j).filter(v=>v!==null);i=empty[Math.floor(Math.random()*empty.length)];}else i=bestMove();if(i!==undefined)play(i,'X');}
+ cells.forEach(c=>c.addEventListener('click',()=>{const i=+c.dataset.i;if(active&&turn==='O'&&!board[i])play(i,'O');}));
+ $('startBtn').addEventListener('click',start);$('homeBtn').addEventListener('click',showHome);$('modalHome').addEventListener('click',showHome);
+ $('restartBtn').addEventListener('click',()=>newRound('O'));
+ $('nextBtn').addEventListener('click',()=>{$('modal').classList.add('hidden');newRound('O');});
+ $('settingsBtn').addEventListener('click',()=>{ $('modalTitle').textContent='GAME SETTINGS';$('modalText').textContent='Choose difficulty on the home screen. Return home to change it.';$('nextBtn').textContent='CONTINUE';$('modal').classList.remove('hidden');});
+ $('undoBtn').addEventListener('click',()=>{if(!history.length||finished)return;let steps=turn==='O'?1:2;while(steps--&&history.length){const h=history.pop();board=h.board;turn=h.turn;}active=true;hintIndex=-1;draw();setStatus(turn==='O'?'Your turn — choose a square':'AI is thinking…');if(turn==='X')setTimeout(aiMove,350);});
+ $('hintBtn').addEventListener('click',()=>{if(!active||finished||turn!=='O')return;let best=-Infinity,idx=-1;for(let i=0;i<9;i++)if(!board[i]){board[i]='O';let score=minimax(board,true);board[i]='';if(score>best){best=score;idx=i;}}hintIndex=idx;draw();setStatus(idx>=0?`Hint: try the ${['top left','top middle','top right','middle left','center','middle right','bottom left','bottom middle','bottom right'][idx]} square`:'No moves left');});
+ // The settings modal's continue button simply closes it.
+ $('nextBtn').addEventListener('click',()=>{if($('modalTitle').textContent==='GAME SETTINGS'){$('modal').classList.add('hidden');$('nextBtn').textContent='PLAY AGAIN';}});
+})();
+</script>
+</body>
+</html>
